@@ -207,3 +207,126 @@ cd car-rental-service
 cd hello-service
 ./gradlew bootRun
 ```
+
+---
+
+## 🐳 Mini Tutoriel: Envoyer les Images Docker vers Docker Hub
+
+Ce guide vous explique comment publier vos images Docker sur Docker Hub pour les partager avec d'autres.
+
+### Étape 1: Créer un compte Docker Hub
+
+1. Allez sur **https://hub.docker.com/**
+2. Cliquez sur "Sign Up"
+3. Créez un compte gratuit avec:
+   - Votre adresse email
+   - Un nom d'utilisateur (ex: `mon-username`)
+   - Un mot de passe
+
+### Étape 2: Se connecter localement à Docker Hub
+
+```bash
+# Depuis votre terminal
+docker login
+
+# Vous serez demandé :
+Username: mon-username
+Password: (entrez votre mot de passe)
+
+# Succès !
+Login Succeeded
+```
+
+### Étape 3: Construire les Images Localement
+
+Avant de les envoyer, assurez-vous que les images sont construites:
+
+```bash
+# Depuis la racine du projet
+docker-compose build
+
+# Ou individuellement:
+cd car-rental-service
+docker build -t car-rental-service:latest .
+
+cd ../hello-service
+docker build -t hello-service:latest .
+```
+
+### Étape 4: Tagger les Images pour Docker Hub
+
+Vous devez tagger les images avec le format: `votre-username/nom-image:version`
+
+```bash
+# Pour Car Rental Service
+docker tag car-rental-service:latest mon-username/car-rental-service:latest
+docker tag car-rental-service:latest mon-username/car-rental-service:1.0
+
+# Pour Hello Service
+docker tag hello-service:latest mon-username/hello-service:latest
+docker tag hello-service:latest mon-username/hello-service:1.0
+```
+
+**Remplacez `mon-username` par votre vrai nom d'utilisateur Docker Hub !**
+
+### Étape 5: Envoyer les Images vers Docker Hub
+
+```bash
+# Envoyer Car Rental Service
+docker push mon-username/car-rental-service:latest
+docker push mon-username/car-rental-service:1.0
+
+# Envoyer Hello Service
+docker push mon-username/hello-service:latest
+docker push mon-username/hello-service:1.0
+```
+
+Cela peut prendre quelques minutes. Vous verrez les couches (layers) de l'image s'envoyer une par une.
+
+### Étape 6: Vérifier sur Docker Hub
+
+1. Allez sur **https://hub.docker.com/** et connectez-vous
+2. Vous verrez vos deux repositories:
+   - `mon-username/car-rental-service`
+   - `mon-username/hello-service`
+
+### Étape 7: Utiliser les Images depuis Docker Hub
+
+Vous (ou quelqu'un d'autre) pouvez maintenant télécharger et lancer les images:
+
+```bash
+# Télécharger et lancer directement
+docker run -p 8080:8080 mon-username/car-rental-service:1.0
+docker run -p 8081:8081 mon-username/hello-service:1.0
+
+# Ou dans docker-compose.yml, utilisez:
+services:
+  car-rental:
+    image: mon-username/car-rental-service:1.0
+    ports:
+      - "8080:8080"
+  
+  hello:
+    image: mon-username/hello-service:1.0
+    ports:
+      - "8081:8081"
+```
+
+### 💡 Bonnes pratiques
+
+- **Utiliser des tags de version** (`1.0`, `1.1`, `latest`) plutôt que juste `latest`
+- **Ajouter une description** à vos repositories sur Docker Hub (ex: "Microservice de gestion de location de voitures")
+- **Garder vos images à jour** quand vous faites des modifications
+- **Considérer la taille** : plus l'image est petite, plus elle se télécharge vite (nos multi-stage Dockerfile aident déjà !)
+
+### 🔒 Sécurité
+
+- Ne commitez **jamais** votre mot de passe Docker Hub dans le code
+- Utilisez des secrets GitHub Actions (le fichier `ci-car-rental.yml` le fait déjà avec `GITHUB_TOKEN`)
+- Pour les dépôts privés, créez un token d'accès au lieu d'utiliser votre mot de passe
+
+### 📚 Pour aller plus loin
+
+- [Documentation Docker Hub](https://docs.docker.com/docker-hub/)
+- [Docker push officiel](https://docs.docker.com/engine/reference/commandline/push/)
+- Voir notre `.github/workflows/ci-car-rental.yml` pour voir comment c'est automatisé en CI/CD !
