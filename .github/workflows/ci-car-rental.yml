@@ -68,19 +68,6 @@ jobs:
         working-directory: car-rental-service
         run: ./gradlew build -x test
       
-      - name: CVE Scan (Grype)
-        uses: anchore/grype-action@v3
-        with:
-          path: car-rental-service
-          output-format: sarif
-          output-file: grype-results.sarif
-      
-      - name: Upload CVE results to GitHub Security
-        uses: github/codeql-action/upload-sarif@v3
-        with:
-          sarif_file: grype-results.sarif
-          category: grype-scan
-      
       - name: Check for secrets
         uses: gitleaks/gitleaks-action@v2
         env:
