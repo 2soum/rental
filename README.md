@@ -1,81 +1,96 @@
 
+# Rental Microservices
 
-# Rental API
+Cette application est une démonstration de microservices en Java avec Spring Boot.
+Elle contient deux services indépendants orchestrés avec Docker Compose.
 
-Cette application est une petite API REST en Java avec Spring Boot pour gérer une flotte de voitures en location.
+## Services
+
+### 1. Car Rental Service
+Service principal de gestion de location de voitures.
+- Port: **8080**
+- Endpoints:
+  - `GET /cars` - Lister toutes les voitures
+  - `GET /cars/{plateNumber}` - Obtenir une voiture par plaque
+  - `PUT /cars/{plateNumber}?rent=true|false` - Louer ou rendre une voiture
+
+### 2. Hello Service
+Service simple pour tester la communication inter-services.
+- Port: **8081**
+- Endpoints:
+  - `GET /hello` - Réponse simple "Hello"
 
 ## Prérequis
 
-- Java 17
-- Gradle
 - Docker
+- Docker Compose
 
-## Construire l'application
-
-Pour compiler le projet localement :
-
-```bash
-./gradlew build
-```
-
-## Créer une image Docker
-
-Depuis la racine du projet, exécutez :
+## Démarrer les services
 
 ```bash
-docker build -t rental .
+docker-compose up --build
 ```
 
-Cette commande lit le `Dockerfile`, construit l'image de production et prépare le jar généré par Gradle.
+Cela va :
+1. Construire les images Docker pour les deux services
+2. Démarrer les conteneurs sur les ports 8080 et 8081
+3. Connecter les services sur un réseau partagé
 
-## Lancer le conteneur
+## Vérifier que les services fonctionnent
 
-```bash
-docker run --rm -p 8080:8080 rental
-```
-
-- `--rm` : supprime automatiquement le conteneur quand il s'arrête
-- `-p 8080:8080` : expose le port 8080 du conteneur sur le port 8080 de votre machine
-- `rental` : nom de l'image créée précédemment
-
-## Vérifier que l'application fonctionne
-
-Une fois le conteneur démarré, vous pouvez vérifier qu'il répond :
-
+### Car Rental Service
 ```bash
 curl http://localhost:8080/cars
 ```
 
-Vous devriez obtenir une liste de voitures au format JSON.
-
-## Exemple d'appels API
-
-### Lister toutes les voitures
-
+### Hello Service
 ```bash
-curl http://localhost:8080/cars
+curl http://localhost:8081/hello
 ```
 
-### Obtenir une voiture par plaque
+## Arrêter les services
 
 ```bash
-curl http://localhost:8080/cars/ABC123
+docker-compose down
 ```
 
-### Louer une voiture
+## Structure du projet
+
+```
+.
+├── car-rental-service/     # Service de gestion de location
+│   ├── src/
+│   ├── build.gradle
+│   ├── Dockerfile
+│   └── gradlew
+├── hello-service/          # Service "Hello"
+│   ├── src/
+│   ├── build.gradle
+│   ├── Dockerfile
+│   └── gradlew
+└── docker-compose.yml      # Orchestration des services
+```
+
+## Objectif pédagogique
+
+Ce projet démontre :
+- L'architecture en microservices
+- L'utilisation de Docker et Docker Compose
+- La containerisation multi-stage
+- L'orchestration de services
+- La communication inter-services sur un réseau Docker
+- Les bonnes pratiques Spring Boot
+
+## Développement local
+
+Pour développer chaque service individuellement :
 
 ```bash
-curl -X PUT "http://localhost:8080/cars/ABC123?rent=true"
+# Car Rental Service
+cd car-rental-service
+./gradlew bootRun
+
+# Hello Service (dans un autre terminal)
+cd hello-service
+./gradlew bootRun
 ```
-
-### Rendre une voiture
-
-```bash
-curl -X PUT "http://localhost:8080/cars/ABC123?rent=false"
-```
-
-## Remarques pédagogiques
-
-- L'application garde son état en mémoire pendant la durée de vie du conteneur.
-- Elle est volontairement simple pour illustrer les bases d'une API REST avec Spring Boot.
-- Le but n'est pas d'avoir une base de données ou une logique complexe, mais de montrer le fonctionnement d'un service web minimal.

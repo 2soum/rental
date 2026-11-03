@@ -1,0 +1,204 @@
+╔═══════════════════════════════════════════════════════════════════════════╗
+║                         PROJECT STRUCTURE                                 ║
+║                    Microservices Rental Application                       ║
+╚═══════════════════════════════════════════════════════════════════════════╝
+
+rental/                                  Root directory
+├── 📄 README.md                        Main documentation
+├── 📄 QUICK_START.md                   Quick start guide for students
+├── 📄 MICROSERVICES.md                 Pedagogical guide & concepts
+├── 📄 PROJECT_STRUCTURE.txt            This file
+├── 📄 PROJECT_SUMMARY.txt              Summary overview
+├── 🐳 docker-compose.yml               Docker Compose orchestration
+├── 📝 .gitignore                       Git ignore rules
+└── 🚀 start.sh                         Quick start script
+
+├─ car-rental-service/                  🚗 MICROSERVICE 1: Car Rental
+│  ├── 📄 README.md                     Service documentation
+│  ├── 🐳 Dockerfile                    Multi-stage Docker build
+│  ├── 📋 build.gradle                  Gradle build configuration
+│  ├── 📋 settings.gradle               Gradle settings
+│  ├── 📁 gradle/                       Gradle wrapper files
+│  │  ├── wrapper/
+│  │  │  ├── gradle-wrapper.jar
+│  │  │  └── gradle-wrapper.properties
+│  ├── 🔧 gradlew                       Gradle wrapper script (Unix)
+│  ├── 🔧 gradlew.bat                   Gradle wrapper script (Windows)
+│  │
+│  └── 📁 src/                          Source code
+│     ├── 📁 main/
+│     │  ├── 📁 java/com/example/rental/
+│     │  │  ├── 🔵 RentalApplication.java    Spring Boot entry point
+│     │  │  │
+│     │  │  ├── 📁 entity/
+│     │  │  │  └── 🔵 Car.java               Data model (plate, brand, rented)
+│     │  │  │
+│     │  │  ├── 📁 service/
+│     │  │  │  └── 🔵 RentalService.java     Business logic
+│     │  │  │
+│     │  │  └── 📁 web/
+│     │  │     ├── 🔵 RentalWebService.java  REST controller
+│     │  │     └── 🔵 Dates.java             (placeholder for dates)
+│     │  │
+│     │  └── 📁 resources/
+│     │     └── 📋 application.properties    Spring config (port: 8080)
+│     │
+│     └── 📁 test/
+│        └── 📁 java/com/example/rental/
+│           └── 🔵 RentalApplicationTests.java   Unit tests
+
+├─ hello-service/                       👋 MICROSERVICE 2: Hello Service
+│  ├── 📄 README.md                     Service documentation
+│  ├── 🐳 Dockerfile                    Multi-stage Docker build
+│  ├── 📋 build.gradle                  Gradle build configuration
+│  ├── 📋 settings.gradle               Gradle settings
+│  ├── 📁 gradle/                       Gradle wrapper files
+│  │  └── wrapper/
+│  │     ├── gradle-wrapper.jar
+│  │     └── gradle-wrapper.properties
+│  ├── 🔧 gradlew                       Gradle wrapper script (Unix)
+│  ├── 🔧 gradlew.bat                   Gradle wrapper script (Windows)
+│  │
+│  └── 📁 src/                          Source code
+│     ├── 📁 main/
+│     │  ├── 📁 java/com/example/hello/
+│     │  │  ├── 🔵 HelloApplication.java    Spring Boot entry point
+│     │  │  │
+│     │  │  └── 📁 web/
+│     │  │     └── 🔵 HelloWebService.java  Simple REST controller
+│     │  │
+│     │  └── 📁 resources/
+│     │     └── 📋 application.properties   Spring config (port: 8081)
+│     │
+│     └── 📁 test/
+│        └── 📁 java/com/example/hello/
+│           └── 🔵 HelloApplicationTests.java   Unit tests
+
+═══════════════════════════════════════════════════════════════════════════
+
+KEY FILES EXPLAINED:
+
+📄 README.md
+   ├─ Overview of both microservices
+   ├─ Prerequisites (Docker, Docker Compose)
+   ├─ How to start the services
+   ├─ API endpoints documentation
+   └─ Project structure
+
+🐳 docker-compose.yml
+   ├─ Defines two services: car-rental-service and hello-service
+   ├─ Port mapping: 8080 -> car-rental, 8081 -> hello
+   ├─ Shared network: rental-network (allows inter-service communication)
+   └─ Build configuration for each service
+
+🐳 Dockerfile (in both services)
+   ├─ Stage 1 (Builder):
+   │  ├─ Base image: gradle:8.14-jdk17
+   │  ├─ Copies entire project
+   │  └─ Runs: gradle clean build -x test
+   │
+   └─ Stage 2 (Runtime):
+      ├─ Base image: eclipse-temurin:17-jre-jammy (lightweight)
+      ├─ Copies only the compiled JAR from Stage 1
+      ├─ Exposes port 8080 (or 8081 for hello-service)
+      └─ Runs: java -jar app.jar
+
+🚀 start.sh
+   └─ Bash script with helper commands:
+      ├─ ./start.sh up      (Start services)
+      ├─ ./start.sh down    (Stop services)
+      ├─ ./start.sh logs    (View logs)
+      ├─ ./start.sh test    (Test endpoints)
+      └─ ./start.sh ps      (Service status)
+
+═══════════════════════════════════════════════════════════════════════════
+
+BUILD & RUN FLOW:
+
+1. START (docker-compose up --build)
+   │
+   ├─→ Car-Rental-Service
+   │   ├─ Build Stage: gradle:8.14-jdk17
+   │   │   └─ Compile with Gradle
+   │   ├─ Runtime Stage: eclipse-temurin:17-jre-jammy
+   │   │   └─ Execute JAR
+   │   └─ Listen on Port 8080
+   │
+   └─→ Hello-Service
+       ├─ Build Stage: gradle:8.14-jdk17
+       │   └─ Compile with Gradle
+       ├─ Runtime Stage: eclipse-temurin:17-jre-jammy
+       │   └─ Execute JAR
+       └─ Listen on Port 8081
+
+2. COMMUNICATION
+   Both services connect to "rental-network"
+   → car-rental-service:8080 accessible as "http://car-rental-service:8080"
+   → hello-service:8081 accessible as "http://hello-service:8081"
+
+═══════════════════════════════════════════════════════════════════════════
+
+DEPENDENCIES:
+
+car-rental-service/build.gradle:
+   └─ org.springframework.boot:spring-boot-starter-webmvc
+   └─ org.springframework.boot:spring-boot-starter-webmvc-test
+
+hello-service/build.gradle:
+   └─ org.springframework.boot:spring-boot-starter-webmvc
+   └─ org.springframework.boot:spring-boot-starter-webmvc-test
+
+═══════════════════════════════════════════════════════════════════════════
+
+CONFIGURATION:
+
+car-rental-service/src/main/resources/application.properties:
+   ├─ server.port=8080
+   ├─ spring.application.name=car-rental-service
+   └─ (Spring Boot will auto-discover @SpringBootApplication)
+
+hello-service/src/main/resources/application.properties:
+   ├─ server.port=8081
+   ├─ spring.application.name=hello-service
+   └─ (Spring Boot will auto-discover @SpringBootApplication)
+
+═══════════════════════════════════════════════════════════════════════════
+
+GETTING STARTED:
+
+1. Build and run:
+   $ docker-compose up --build
+
+2. Test endpoints:
+   $ curl http://localhost:8080/cars
+   $ curl http://localhost:8081/hello
+
+3. View logs:
+   $ docker-compose logs -f
+
+4. Stop:
+   $ docker-compose down
+
+═══════════════════════════════════════════════════════════════════════════
+
+EDUCATIONAL BENEFITS:
+
+✓ Microservices Architecture
+  └─ Two independent services with separate responsibilities
+
+✓ Docker & Containerization
+  └─ Multi-stage builds reduce image size
+
+✓ Orchestration
+  └─ docker-compose manages multiple containers
+
+✓ Spring Boot Best Practices
+  └─ Each service is a self-contained Spring Boot application
+
+✓ REST API Design
+  └─ Practical examples of HTTP methods and status codes
+
+✓ Network Communication
+  └─ Services communicate through Docker network
+
+═══════════════════════════════════════════════════════════════════════════

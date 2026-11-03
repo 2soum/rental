@@ -1,0 +1,169 @@
+{
+  "project": {
+    "name": "Rental Microservices",
+    "description": "Educational microservices project for teaching Spring Boot and Docker",
+    "version": "1.0.0",
+    "language": "Java",
+    "javaVersion": "17",
+    "framework": "Spring Boot",
+    "springBootVersion": "4.1.1",
+    "buildTool": "Gradle",
+    "containerization": "Docker",
+    "orchestration": "Docker Compose",
+    "targetAudience": "Computer Science Students",
+    "difficulty": "Beginner to Intermediate"
+  },
+  "services": [
+    {
+      "id": 1,
+      "name": "Car-Rental-Service",
+      "port": 8080,
+      "description": "Service for managing car rentals",
+      "basePackage": "com.example.rental",
+      "type": "REST API",
+      "endpoints": [
+        {
+          "method": "GET",
+          "path": "/cars",
+          "description": "List all cars"
+        },
+        {
+          "method": "GET",
+          "path": "/cars/{plateNumber}",
+          "description": "Get a car by plate number"
+        },
+        {
+          "method": "PUT",
+          "path": "/cars/{plateNumber}",
+          "params": "rent=true|false",
+          "description": "Rent or return a car"
+        }
+      ],
+      "dataStorage": "In-Memory",
+      "sampleData": [
+        {"plate": "ABC123", "brand": "Toyota", "rented": false},
+        {"plate": "XYZ789", "brand": "Honda", "rented": false},
+        {"plate": "DEF456", "brand": "BMW", "rented": false}
+      ]
+    },
+    {
+      "id": 2,
+      "name": "Hello-Service",
+      "port": 8081,
+      "description": "Simple service for testing inter-service communication",
+      "basePackage": "com.example.hello",
+      "type": "REST API",
+      "endpoints": [
+        {
+          "method": "GET",
+          "path": "/hello",
+          "description": "Returns 'Hello' message"
+        }
+      ]
+    }
+  ],
+  "documentation": {
+    "README.md": "Main documentation",
+    "QUICK_START.md": "Quick start guide (5-10 min)",
+    "MICROSERVICES.md": "Pedagogical guide with concepts and exercises",
+    "PROJECT_STRUCTURE.txt": "Detailed file structure reference",
+    "PROJECT_SUMMARY.txt": "Executive summary",
+    "INDEX.md": "Documentation index and navigation guide"
+  },
+  "scripts": {
+    "start.sh": "Helper script for managing services",
+    "commands": [
+      {"cmd": "./start.sh up", "description": "Start all services"},
+      {"cmd": "./start.sh down", "description": "Stop all services"},
+      {"cmd": "./start.sh logs", "description": "View logs"},
+      {"cmd": "./start.sh test", "description": "Test endpoints"},
+      {"cmd": "./start.sh ps", "description": "Service status"}
+    ]
+  },
+  "keyFeatures": [
+    "Microservices Architecture",
+    "Docker Containerization",
+    "Multi-stage Docker Builds",
+    "Docker Compose Orchestration",
+    "Spring Boot REST APIs",
+    "Inter-service Communication",
+    "Independent Service Deployment",
+    "Educational Purpose"
+  ],
+  "learningOutcomes": [
+    "Understand microservices architecture",
+    "Learn Docker fundamentals",
+    "Practice containerization",
+    "Master Docker Compose",
+    "Build REST APIs with Spring Boot",
+    "Understand service-to-service communication",
+    "Learn about port mapping and networking"
+  ],
+  "prerequisites": [
+    "Docker installed",
+    "Docker Compose installed",
+    "Ports 8080 and 8081 available",
+    "Basic command line knowledge",
+    "Optional: Java 17 for local development"
+  ],
+  "directories": {
+    "car-rental-service": {
+      "type": "Microservice",
+      "path": "./car-rental-service",
+      "description": "Car rental management service",
+      "mainClass": "com.example.rental.RentalApplication",
+      "structures": {
+        "entity": "Car model",
+        "service": "Business logic (RentalService)",
+        "web": "REST controllers"
+      }
+    },
+    "hello-service": {
+      "type": "Microservice",
+      "path": "./hello-service",
+      "description": "Simple hello service",
+      "mainClass": "com.example.hello.HelloApplication",
+      "structures": {
+        "web": "REST controllers"
+      }
+    }
+  },
+  "docker": {
+    "buildStrategy": "Multi-stage",
+    "stages": [
+      {
+        "name": "builder",
+        "baseImage": "gradle:8.14-jdk17",
+        "purpose": "Compile the application"
+      },
+      {
+        "name": "runtime",
+        "baseImage": "eclipse-temurin:17-jre-jammy",
+        "purpose": "Execute the application (lightweight)"
+      }
+    ],
+    "network": {
+      "name": "rental-network",
+      "driver": "bridge",
+      "purpose": "Allow inter-service communication"
+    }
+  },
+  "timing": {
+    "quickStart": "5-10 minutes",
+    "basicUnderstanding": "30 minutes",
+    "completeLesson": "1-2 hours",
+    "exercisesLevel1": "30 minutes",
+    "exercisesLevel2": "1 hour",
+    "exercisesLevel3": "2-3 hours"
+  },
+  "nextSteps": [
+    "Add database persistence (PostgreSQL)",
+    "Implement API Gateway",
+    "Add service discovery (Eureka)",
+    "Implement circuit breaker pattern",
+    "Add centralized configuration",
+    "Setup monitoring (Prometheus + Grafana)",
+    "Add distributed tracing (Jaeger/Zipkin)",
+    "Implement logging aggregation (ELK Stack)"
+  ]
+}

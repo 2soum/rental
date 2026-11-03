@@ -1,0 +1,155 @@
+╔═══════════════════════════════════════════════════════════════════════════╗
+║                    MICROSERVICES PROJECT SUMMARY                          ║
+╚═══════════════════════════════════════════════════════════════════════════╝
+
+PROJECT STRUCTURE:
+─────────────────
+
+rental/
+├── README.md                      # Documentation racine
+├── MICROSERVICES.md               # Guide pédagogique détaillé
+├── docker-compose.yml             # Orchestration des services
+├── .gitignore                     # Ignore les fichiers générés
+│
+├── car-rental-service/            # Service 1 : Gestion de location
+│   ├── README.md
+│   ├── build.gradle
+│   ├── settings.gradle
+│   ├── Dockerfile                 # Multi-stage: builder + runtime
+│   ├── gradlew
+│   ├── gradle/
+│   └── src/
+│       ├── main/java/com/example/rental/
+│       │   ├── RentalApplication.java
+│       │   ├── entity/Car.java
+│       │   ├── service/RentalService.java
+│       │   └── web/RentalWebService.java
+│       └── test/java/com/example/rental/
+│           └── RentalApplicationTests.java
+│
+└── hello-service/                 # Service 2 : Hello simple
+    ├── README.md
+    ├── build.gradle
+    ├── settings.gradle
+    ├── Dockerfile                 # Multi-stage: builder + runtime
+    ├── gradlew
+    ├── gradle/
+    └── src/
+        ├── main/java/com/example/hello/
+        │   ├── HelloApplication.java
+        │   └── web/HelloWebService.java
+        └── test/java/com/example/hello/
+            └── HelloApplicationTests.java
+
+MICROSERVICES:
+──────────────
+
+1️⃣  CAR-RENTAL-SERVICE (Port 8080)
+   Language: Java 17 + Spring Boot
+   Endpoints:
+   • GET    /cars              - Lister toutes les voitures
+   • GET    /cars/{plate}      - Obtenir une voiture
+   • PUT    /cars/{plate}      - Louer/Rendre une voiture
+   
+   Architecture:
+   • Entity: Car (plate, brand, rented)
+   • Service: RentalService (logique métier)
+   • Controller: RentalWebService (endpoints REST)
+   
+   Data: En mémoire (3 voitures d'exemple)
+
+2️⃣  HELLO-SERVICE (Port 8081)
+   Language: Java 17 + Spring Boot
+   Endpoints:
+   • GET    /hello             - Réponse "Hello"
+   
+   Purpose: Démonstration simple, test de communication
+   
+   Controller: HelloWebService
+
+DOCKER & COMPOSE:
+─────────────────
+
+Dockerfile (Both Services):
+├── Stage 1 (Builder)
+│   └── gradle:8.14-jdk17
+│       └── Compile avec gradle clean build
+│
+└── Stage 2 (Runtime)
+    └── eclipse-temurin:17-jre-jammy
+        └── Exécute le JAR compilé
+
+docker-compose.yml:
+├── Services:
+│   ├── car-rental-service
+│   │   ├── Build: ./car-rental-service/Dockerfile
+│   │   ├── Port: 8080:8080
+│   │   └── Network: rental-network
+│   │
+│   └── hello-service
+│       ├── Build: ./hello-service/Dockerfile
+│       ├── Port: 8081:8081
+│       └── Network: rental-network
+│
+└── Network:
+    └── rental-network (bridge driver)
+
+GETTING STARTED:
+────────────────
+
+Build and Run:
+$ docker-compose up --build
+
+Verify Services:
+$ curl http://localhost:8080/cars
+$ curl http://localhost:8081/hello
+
+View Logs:
+$ docker-compose logs -f
+
+Stop Services:
+$ docker-compose down
+
+LOCAL DEVELOPMENT:
+──────────────────
+
+Car-Rental-Service:
+$ cd car-rental-service
+$ ./gradlew bootRun      # Démarre sur http://localhost:8080
+
+Hello-Service (autre terminal):
+$ cd hello-service
+$ ./gradlew bootRun      # Démarre sur http://localhost:8081
+
+KEY CONCEPTS TAUGHT:
+────────────────────
+
+✓ Microservices Architecture
+✓ Service Independence & Separation of Concerns
+✓ Docker Containerization
+✓ Multi-stage Docker Builds
+✓ Docker Compose Orchestration
+✓ Inter-service Communication (via Docker Network)
+✓ Spring Boot Best Practices
+✓ RESTful API Design
+✓ Port Management & Port Mapping
+
+EDUCATIONAL VALUE:
+──────────────────
+
+This project is designed for students to learn:
+1. How microservices are organized
+2. Docker fundamentals
+3. Container orchestration
+4. Service-to-service communication
+5. Building lightweight containers with multi-stage builds
+
+NEXT STEPS FOR LEARNING:
+────────────────────────
+
+See MICROSERVICES.md for:
+- Detailed explanations
+- Advanced exercises
+- Improvement suggestions
+- Links to resources
+

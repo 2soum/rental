@@ -1,0 +1,268 @@
+╔═══════════════════════════════════════════════════════════════════════════╗
+║                                                                           ║
+║              RENTAL MICROSERVICES - ARCHITECTURE OVERVIEW                 ║
+║                                                                           ║
+╚═══════════════════════════════════════════════════════════════════════════╝
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│                          EXTERNAL CLIENTS                                │
+│                                                                          │
+│    ┌──────────────┐                          ┌──────────────┐          │
+│    │   Student A  │                          │   Student B  │          │
+│    └──────┬───────┘                          └──────┬───────┘          │
+│           │                                         │                   │
+│           └─────────────┬───────────────────────────┘                   │
+└──────────────────────────┼───────────────────────────────────────────────┘
+                           │
+        ┌──────────────────┴──────────────────┐
+        │   DOCKER COMPOSE NETWORK            │
+        │   (rental-network, bridge driver)   │
+        │                                     │
+        ├──────────────────┬─────────────────┤
+        │                  │                 │
+    ┌───▼────────┐    ┌───▼────────┐        │
+    │   LOCAL    │    │   LOCAL    │        │
+    │ :8080      │    │ :8081      │        │
+    └───▲────────┘    └───▲────────┘        │
+        │                  │                 │
+    ┌───┴─────────────────┴─────────────────┴────────────────────────────┐
+    │                      DOCKER CONTAINERS                             │
+    │                                                                    │
+    │  ┌──────────────────────────┐  ┌──────────────────────────┐      │
+    │  │  CAR-RENTAL-SERVICE      │  │   HELLO-SERVICE          │      │
+    │  │  Container:8080          │  │   Container:8081         │      │
+    │  │                          │  │                          │      │
+    │  │  ┌────────────────────┐  │  │  ┌────────────────────┐  │      │
+    │  │  │ RentalApplication  │  │  │  │ HelloApplication   │  │      │
+    │  │  └────────────────────┘  │  │  └────────────────────┘  │      │
+    │  │           ▲               │  │           ▲              │      │
+    │  │           │               │  │           │              │      │
+    │  │  ┌────────┴──────────┐   │  │  ┌────────┴────────┐    │      │
+    │  │  │   REST Controller  │   │  │  │  REST Controller│    │      │
+    │  │  │ RentalWebService   │   │  │  │HelloWebService │    │      │
+    │  │  └───────┬────────────┘   │  │  └────────┬────────┘    │      │
+    │  │          │                │  │           │             │      │
+    │  │    GET /cars              │  │      GET /hello        │      │
+    │  │    GET /cars/{id}         │  │                        │      │
+    │  │    PUT /cars/{id}         │  │      Response: "Hello" │      │
+    │  │                          │  │                          │      │
+    │  │  ┌────────────────────┐  │  │                          │      │
+    │  │  │   RentalService    │  │  │                          │      │
+    │  │  │  (Business Logic)  │  │  │                          │      │
+    │  │  └───────┬────────────┘   │  │                          │      │
+    │  │          │                │  │                          │      │
+    │  │  ┌───────▼────────────┐   │  │                          │      │
+    │  │  │   Entity: Car      │   │  │                          │      │
+    │  │  │   (plate, brand,   │   │  │                          │      │
+    │  │  │    rented flag)    │   │  │                          │      │
+    │  │  └────────────────────┘   │  │                          │      │
+    │  │                          │  │                          │      │
+    │  │  ┌────────────────────┐  │  │                          │      │
+    │  │  │  In-Memory Storage  │  │  │                          │      │
+    │  │  │  • ABC123 - Toyota  │  │  │                          │      │
+    │  │  │  • XYZ789 - Honda   │  │  │                          │      │
+    │  │  │  • DEF456 - BMW     │  │  │                          │      │
+    │  │  └────────────────────┘  │  │                          │      │
+    │  │                          │  │                          │      │
+    │  └──────────────────────────┘  └──────────────────────────┘      │
+    │                                                                    │
+    └────────────────────────────────────────────────────────────────────┘
+
+═══════════════════════════════════════════════════════════════════════════
+
+                          DOCKER BUILD FLOW
+
+┌──────────────────────────────────────────────────────────────────────────┐
+│                    docker-compose up --build                            │
+└────────────────────────────────────────────────────────────────────────┬─┘
+                                                                         │
+        ┌────────────────────────────────────────────────────────┬──────┘
+        │                                                        │
+        ▼                                                        ▼
+┌──────────────────────────────────────────┐  ┌────────────────────────────┐
+│   BUILD CAR-RENTAL-SERVICE               │  │  BUILD HELLO-SERVICE       │
+└──────────────────────────────────────────┘  └────────────────────────────┘
+        │                                             │
+        ├─→ Stage 1: BUILDER                    ├─→ Stage 1: BUILDER
+        │   Base: gradle:8.14-jdk17            │   Base: gradle:8.14-jdk17
+        │   ├─ COPY source code                │   ├─ COPY source code
+        │   └─ RUN gradle build                │   └─ RUN gradle build
+        │       └─ Output: *.jar               │       └─ Output: *.jar
+        │                                      │
+        └─→ Stage 2: RUNTIME                   └─→ Stage 2: RUNTIME
+            Base: eclipse-temurin:17-jre       Base: eclipse-temurin:17-jre
+            ├─ COPY *.jar from builder         ├─ COPY *.jar from builder
+            ├─ EXPOSE 8080                     ├─ EXPOSE 8081
+            └─ RUN java -jar app.jar           └─ RUN java -jar app.jar
+                └─ Container ready!                └─ Container ready!
+
+═══════════════════════════════════════════════════════════════════════════
+
+                      COMMUNICATION FLOW
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│  Student Query: curl http://localhost:8080/cars                         │
+└────────────────────────────────────────────────────────┬────────────────┘
+                                                         │
+                                                         ▼
+                    ┌─────────────────────────────────────────────┐
+                    │  HOST PORT MAPPING                          │
+                    │  localhost:8080 → docker:8080              │
+                    └─────────────────┬───────────────────────────┘
+                                      │
+                                      ▼
+                    ┌─────────────────────────────────────────────┐
+                    │  DOCKER NETWORK: rental-network            │
+                    │  (bridge driver)                           │
+                    └─────────────────┬───────────────────────────┘
+                                      │
+                                      ▼
+                    ┌─────────────────────────────────────────────┐
+                    │  CAR-RENTAL-SERVICE CONTAINER               │
+                    │  Listening on :8080                        │
+                    └─────────────────┬───────────────────────────┘
+                                      │
+                                      ▼
+                    ┌─────────────────────────────────────────────┐
+                    │  RentalWebService (REST Controller)        │
+                    │  @GetMapping("/cars")                      │
+                    └─────────────────┬───────────────────────────┘
+                                      │
+                                      ▼
+                    ┌─────────────────────────────────────────────┐
+                    │  RentalService.getAllCars()                │
+                    │  Returns: List<Car>                        │
+                    └─────────────────┬───────────────────────────┘
+                                      │
+                                      ▼
+                    ┌─────────────────────────────────────────────┐
+                    │  JSON Response                              │
+                    │  [{plate: ABC123, brand: Toyota, ...}]     │
+                    └─────────────────┬───────────────────────────┘
+                                      │
+                                      ▼
+                    ┌─────────────────────────────────────────────┐
+                    │  HTTP 200 OK                                │
+                    │  Returned to Student                        │
+                    └─────────────────────────────────────────────┘
+
+═══════════════════════════════════════════════════════════════════════════
+
+                     INTER-SERVICE COMMUNICATION
+
+If hello-service needs to call car-rental-service:
+
+  ┌─────────────────────────────────────────────────────────────────────┐
+  │  HelloService needs car data                                        │
+  │                                                                      │
+  │  URL: http://car-rental-service:8080/cars                          │
+  │       (uses service name, not localhost)                           │
+  │                                                                      │
+  │  Docker Network Resolution:                                        │
+  │  car-rental-service → resolves to container IP                    │
+  │  (Docker's embedded DNS handles this)                             │
+  │                                                                      │
+  │  Result: Services can communicate by service name                 │
+  │          within the Docker network                                │
+  └─────────────────────────────────────────────────────────────────────┘
+
+═══════════════════════════════════════════════════════════════════════════
+
+                        PROJECT DEPLOYMENT
+
+                    LOCAL DEVELOPMENT (Dev Machine)
+                    
+                    ┌─────────────────────────────┐
+                    │  Docker Desktop / Docker     │
+                    │  Compose                     │
+                    │                             │
+                    │  $ ./start.sh up            │
+                    │                             │
+                    │  Ports: 8080, 8081         │
+                    │  Access: http://localhost  │
+                    └─────────────────────────────┘
+
+                            │
+                            ▼
+                    
+                    PRODUCTION DEPLOYMENT (Future)
+                    
+                    ┌─────────────────────────────┐
+                    │  Kubernetes / Docker Swarm   │
+                    │  AWS ECS / Azure AKS        │
+                    │                             │
+                    │  Multiple replicas          │
+                    │  Load balancer              │
+                    │  Persistent storage         │
+                    │  Service mesh               │
+                    └─────────────────────────────┘
+
+═══════════════════════════════════════════════════════════════════════════
+
+KEY CONCEPTS ILLUSTRATED:
+
+1. MICROSERVICES
+   ├─ Separation of concerns (each service has one job)
+   ├─ Independent deployment
+   ├─ Technology agnostic (could use different languages)
+   └─ Communication via REST APIs
+
+2. CONTAINERIZATION
+   ├─ Multi-stage builds (efficient images)
+   ├─ Container isolation
+   ├─ Environment consistency
+   └─ Easy deployment
+
+3. ORCHESTRATION
+   ├─ Service definition (docker-compose)
+   ├─ Network management (rental-network)
+   ├─ Port mapping
+   └─ Service discovery (by name)
+
+4. REST ARCHITECTURE
+   ├─ HTTP methods (GET, PUT)
+   ├─ Resource endpoints (/cars)
+   ├─ Status codes (200, 404, 409)
+   └─ JSON payloads
+
+═══════════════════════════════════════════════════════════════════════════
+
+                      HOW IT ALL CONNECTS
+
+Developer's Machine
+    │
+    ├─ $ git clone <project>
+    ├─ $ cd rental
+    ├─ $ ./start.sh up
+    │
+    └─ Docker Compose starts:
+        ├─ Reads docker-compose.yml
+        ├─ Creates rental-network
+        ├─ Builds car-rental-service:latest
+        ├─ Builds hello-service:latest
+        ├─ Starts car-rental-service container
+        ├─ Starts hello-service container
+        ├─ Maps ports (8080, 8081)
+        │
+        └─ Services are now RUNNING
+            ├─ Car-Rental API accessible at http://localhost:8080
+            ├─ Hello Service accessible at http://localhost:8081
+            └─ Both services can talk to each other
+                via Docker network (rental-network)
+
+Student's Experience:
+    │
+    ├─ Sees microservices in action
+    ├─ Understands service independence
+    ├─ Learns Docker containers
+    ├─ Practices REST API calls
+    ├─ Explores Spring Boot
+    │
+    └─ Can extend with:
+        ├─ Database (PostgreSQL)
+        ├─ API Gateway
+        ├─ Service Discovery
+        ├─ Monitoring
+        └─ Tracing
+
+═══════════════════════════════════════════════════════════════════════════
