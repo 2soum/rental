@@ -151,9 +151,6 @@ jobs:
         with:
           sarif_file: trivy-results.sarif
           category: trivy-scan
-      
-      - name: Image digest
-        run: echo "Image pushed with digest: ${{ steps.docker_build.outputs.digest }}"
 
   # Summary job
   pipeline-status:
