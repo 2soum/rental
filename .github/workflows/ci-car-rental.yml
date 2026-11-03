@@ -22,6 +22,9 @@ jobs:
   test:
     name: Unit & Integration Tests
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      checks: write
     
     steps:
       - name: Checkout code
@@ -44,12 +47,6 @@ jobs:
         with:
           name: test-results
           path: car-rental-service/build/test-results/
-      
-      - name: Publish test report
-        if: always()
-        uses: EnricoMi/publish-unit-test-result-action@v2
-        with:
-          files: car-rental-service/build/test-results/**/*.xml
 
   # Code quality checks
   code-quality:
