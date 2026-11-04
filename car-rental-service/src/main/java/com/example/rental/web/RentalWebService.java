@@ -58,7 +58,7 @@ public class RentalWebService {
                 return ResponseEntity.ok("Car " + plateNumber + " rented successfully");
             } else {
                 return ResponseEntity.status(HttpStatus.CONFLICT)
-                        .body("Car: " + plateNumber + " is already rented");
+                        .body("Car " + plateNumber + " is already rented");
             }
         } else if (rent != null && !rent) {
             if (rentalService.returnCar(plateNumber)) {
