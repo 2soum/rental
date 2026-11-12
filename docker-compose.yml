@@ -2,6 +2,7 @@ version: '3.8'
 
 services:
   car-rental-service:
+    image: 2soum/car-rental:1.0
     build:
       context: ./car-rental-service
       dockerfile: Dockerfile
@@ -13,6 +14,7 @@ services:
       - rental-network
 
   hello-service:
+    image: 2soum/hello-service:1.0
     build:
       context: ./hello-service
       dockerfile: Dockerfile
